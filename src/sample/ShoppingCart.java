@@ -43,8 +43,12 @@ public class ShoppingCart {
             return "No items.";
 
         List<String[]> lines = new ArrayList<>();
-        String[] header = {"#", "Item", "Price", "Quan.", "Discount", "Total"};
-        int[] align = {1, -1, 1, 1, 1, 1};
+        double total = calculateItemsParameters(lines);
+
+        return getFormattedTicketTable(total, lines);
+    }
+
+    private double calculateItemsParameters(List<String[]> lines) {
         double total = 0.00;
         int index = 0;
 
@@ -63,20 +67,23 @@ public class ShoppingCart {
             total += item.getTotalPrice();
         }
 
-        String[] footer = {String.valueOf(index), "", "", "", "", MONEY.format(total)};
+        return total;
+    }
 
-        // Calculate column widths
+    private String getFormattedTicketTable(double total, List<String[]> lines) {
+        String[] header = {"#", "Item", "Price", "Quan.", "Discount", "Total"};
+        int[] align = {1, -1, 1, 1, 1, 1};
+        String[] footer = {String.valueOf(lines.size()), "", "", "", "", MONEY.format(total)};
+
         int[] width = new int[]{0, 0, 0, 0, 0, 0};
         for (String[] line : lines)
             adjustColumnWidth(width, line);
         adjustColumnWidth(width, header);
         adjustColumnWidth(width, footer);
 
-        // Calculate line length
         int lineLength = Arrays.stream(width).sum() + width.length - 1;
-
-        // Build formatted output
         StringBuilder sb = new StringBuilder();
+
         appendFormattedLine(sb, header, align, width, true);
         appendSeparator(sb, lineLength);
 
