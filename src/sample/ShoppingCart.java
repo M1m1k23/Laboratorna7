@@ -28,11 +28,12 @@ public class ShoppingCart {
             throw new IllegalArgumentException("Illegal price");
         if (quantity <= 0)
             throw new IllegalArgumentException("Illegal quantity");
+
         Item item = new Item();
-        item.title = title;
-        item.price = price;
-        item.quantity = quantity;
-        item.type = type;
+        item.setTitle(title);
+        item.setPrice(price);
+        item.setQuantity(quantity);
+        item.setType(type);
         items.add(item);
     }
 
@@ -48,32 +49,33 @@ public class ShoppingCart {
         int index = 0;
 
         for (Item item : items) {
-            int discount = calculateDiscount(item.type, item.quantity);
-            double itemTotal = item.price * item.quantity * (100.00 - discount) / 100.00;
+            item.setDiscount(calculateDiscount(item.getType(), item.getQuantity()));
+            item.setTotalPrice(item.getPrice() * item.getQuantity() *
+                    (100.00 - item.getDiscount()) / 100.00);
             lines.add(new String[]{
                     String.valueOf(++index),
-                    item.title,
-                    MONEY.format(item.price),
-                    String.valueOf(item.quantity),
-                    (discount == 0) ? "-" : discount + "%",
-                    MONEY.format(itemTotal)
+                    item.getTitle(),
+                    MONEY.format(item.getPrice()),
+                    String.valueOf(item.getQuantity()),
+                    (item.getDiscount() == 0) ? "-" : (item.getDiscount() + "%"),
+                    MONEY.format(item.getTotalPrice())
             });
-            total += itemTotal;
+            total += item.getTotalPrice();
         }
 
         String[] footer = {String.valueOf(index), "", "", "", "", MONEY.format(total)};
 
-        // Визначення ширини колонок з використанням adjustColumnWidth
+        // Calculate column widths
         int[] width = new int[]{0, 0, 0, 0, 0, 0};
         for (String[] line : lines)
             adjustColumnWidth(width, line);
         adjustColumnWidth(width, header);
         adjustColumnWidth(width, footer);
 
-        // Розрахунок довжини лінії
+        // Calculate line length
         int lineLength = Arrays.stream(width).sum() + width.length - 1;
 
-        // Формування таблиці
+        // Build formatted output
         StringBuilder sb = new StringBuilder();
         appendFormattedLine(sb, header, align, width, true);
         appendSeparator(sb, lineLength);
@@ -99,20 +101,17 @@ public class ShoppingCart {
         MONEY = new DecimalFormat("$#.00", symbols);
     }
 
-    /** Додає лінію з роздільниками */
     private void appendSeparator(StringBuilder sb, int lineLength) {
         for (int i = 0; i < lineLength; i++)
             sb.append("-");
         sb.append("\n");
     }
 
-    /** Регулює ширину колонок для кожного рядка */
     private void adjustColumnWidth(int[] width, String[] columns) {
         for (int i = 0; i < width.length; i++)
             width[i] = (int) Math.max(width[i], columns[i].length());
     }
 
-    /** Додає відформатовану лінію до таблиці */
     private void appendFormattedLine(StringBuilder sb,
                                      String[] line,
                                      int[] align,
@@ -124,7 +123,6 @@ public class ShoppingCart {
             sb.append("\n");
     }
 
-    /** Appends to sb formatted value */
     public static void appendFormatted(StringBuilder sb, String value, int align, int width) {
         if (value.length() > width)
             value = value.substring(0, width);
@@ -140,7 +138,6 @@ public class ShoppingCart {
         sb.append(" ");
     }
 
-    /** Calculates item's discount */
     public static int calculateDiscount(ItemType type, int quantity) {
         int discount = 0;
         switch (type) {
@@ -167,9 +164,59 @@ public class ShoppingCart {
 
     /** Item info */
     private static class Item {
-        String title;
-        double price;
-        int quantity;
-        ItemType type;
+        private String title;
+        private double price;
+        private int quantity;
+        private ItemType type;
+        private int discount;
+        private double total;
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public double getPrice() {
+            return price;
+        }
+
+        public void setPrice(double price) {
+            this.price = price;
+        }
+
+        public int getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(int quantity) {
+            this.quantity = quantity;
+        }
+
+        public ItemType getType() {
+            return type;
+        }
+
+        public void setType(ItemType type) {
+            this.type = type;
+        }
+
+        public int getDiscount() {
+            return discount;
+        }
+
+        public void setDiscount(int discount) {
+            this.discount = discount;
+        }
+
+        public double getTotalPrice() {
+            return total;
+        }
+
+        public void setTotalPrice(double total) {
+            this.total = total;
+        }
     }
 }
