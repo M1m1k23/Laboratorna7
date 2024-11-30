@@ -7,8 +7,10 @@ public class ShoppingCart {
 
     public static enum ItemType { NEW, REGULAR, SECOND_FREE, SALE }
 
+    /** Container for added items */
     private List<Item> items = new ArrayList<>();
 
+    /** Main method for testing */
     public static void main(String[] args) {
         ShoppingCart cart = new ShoppingCart();
         cart.addItem("Apple", 0.99, 5, ItemType.NEW);
@@ -18,6 +20,7 @@ public class ShoppingCart {
         System.out.println(cart.formatTicket());
     }
 
+    /** Adds new item */
     public void addItem(String title, double price, int quantity, ItemType type) {
         if (title == null || title.length() == 0 || title.length() > 32)
             throw new IllegalArgumentException("Illegal title");
@@ -33,6 +36,7 @@ public class ShoppingCart {
         items.add(item);
     }
 
+    /** Formats shopping price */
     public String formatTicket() {
         if (items.size() == 0)
             return "No items.";
@@ -59,57 +63,74 @@ public class ShoppingCart {
 
         String[] footer = {String.valueOf(index), "", "", "", "", MONEY.format(total)};
 
-        // Визначення ширини колонок
-        int[] width = new int[header.length];
-        adjustColumnWidth(width, header);
-        for (String[] line : lines) {
+        // Визначення ширини колонок з використанням adjustColumnWidth
+        int[] width = new int[]{0, 0, 0, 0, 0, 0};
+        for (String[] line : lines)
             adjustColumnWidth(width, line);
-        }
+        adjustColumnWidth(width, header);
         adjustColumnWidth(width, footer);
+
+        // Розрахунок довжини лінії
+        int lineLength = Arrays.stream(width).sum() + width.length - 1;
 
         // Формування таблиці
         StringBuilder sb = new StringBuilder();
         appendFormattedLine(sb, header, align, width, true);
-        appendSeparator(sb, Arrays.stream(width).sum() + width.length - 1);
+        appendSeparator(sb, lineLength);
 
         for (String[] line : lines) {
             appendFormattedLine(sb, line, align, width, true);
         }
 
         if (!lines.isEmpty()) {
-            appendSeparator(sb, Arrays.stream(width).sum() + width.length - 1);
+            appendSeparator(sb, lineLength);
         }
 
         appendFormattedLine(sb, footer, align, width, false);
         return sb.toString();
     }
 
+    // --- Private section -----------------------------------------------------
+
+    private static final NumberFormat MONEY;
+    static {
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setDecimalSeparator('.');
+        MONEY = new DecimalFormat("$#.00", symbols);
+    }
+
+    /** Додає лінію з роздільниками */
     private void appendSeparator(StringBuilder sb, int lineLength) {
-        for (int i = 0; i < lineLength; i++) {
+        for (int i = 0; i < lineLength; i++)
             sb.append("-");
-        }
         sb.append("\n");
     }
 
+    /** Регулює ширину колонок для кожного рядка */
     private void adjustColumnWidth(int[] width, String[] columns) {
-        for (int i = 0; i < width.length; i++) {
-            width[i] = Math.max(width[i], columns[i].length());
-        }
+        for (int i = 0; i < width.length; i++)
+            width[i] = (int) Math.max(width[i], columns[i].length());
     }
 
-    private void appendFormattedLine(StringBuilder sb, String[] line, int[] align, int[] width, boolean newLine) {
-        for (int i = 0; i < line.length; i++) {
+    /** Додає відформатовану лінію до таблиці */
+    private void appendFormattedLine(StringBuilder sb,
+                                     String[] line,
+                                     int[] align,
+                                     int[] width,
+                                     boolean newLine) {
+        for (int i = 0; i < line.length; i++)
             appendFormatted(sb, line[i], align[i], width[i]);
-        }
-        if (newLine) {
+        if (newLine)
             sb.append("\n");
-        }
     }
 
+    /** Appends to sb formatted value */
     public static void appendFormatted(StringBuilder sb, String value, int align, int width) {
         if (value.length() > width)
             value = value.substring(0, width);
-        int before = (align == 0) ? (width - value.length()) / 2 : (align == -1 ? 0 : width - value.length());
+        int before = (align == 0)
+                ? (width - value.length()) / 2
+                : (align == -1) ? 0 : width - value.length();
         int after = width - value.length() - before;
         while (before-- > 0)
             sb.append(" ");
@@ -119,6 +140,7 @@ public class ShoppingCart {
         sb.append(" ");
     }
 
+    /** Calculates item's discount */
     public static int calculateDiscount(ItemType type, int quantity) {
         int discount = 0;
         switch (type) {
@@ -143,13 +165,7 @@ public class ShoppingCart {
         return discount;
     }
 
-    private static final NumberFormat MONEY;
-    static {
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setDecimalSeparator('.');
-        MONEY = new DecimalFormat("$#.00", symbols);
-    }
-
+    /** Item info */
     private static class Item {
         String title;
         double price;
